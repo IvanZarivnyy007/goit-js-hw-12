@@ -4,41 +4,45 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { getImages } from './pixabay-api';
 
-let PAGE = 1;
-let SEARCH_WORD = '';
+const searchInput = document.querySelector('#search-input');
+const gallery = document.querySelector('#gallery');
+const loader = document.querySelector('.loader');
+const navigationForm = document.querySelector('.navigation');
+const moreButton = document.querySelector('#more');
+const msg = document.getElementById('message');
 
-let searchInput = document.querySelector('#search-input');
-let searchButton = document.querySelector('#search-button');
-let gallery = document.querySelector('#gallery');
-let loader = document.querySelector('.loader');
-let moreButton = document.querySelector('#more');
-let msg = document.getElementById('message');
+export const refs = {
+  searchInput,
+  gallery,
+  loader,
+  navigationForm,
+  moreButton,
+  msg,
+};
 
-// const navigationForm = document.querySelector('.navigation');
+export const serviceVars = { PAGE: 1, SEARCH_WORD: '' };
 
-// export const refs = {
-//   searchInput,
-//   gallery,
-//   loader,
-//   navigationForm,
-// };
+export const lightbox = new SimpleLightbox(
+  '#gallery .gallery-item .gallery-link ',
+  {
+    dowload: false,
+    close: true,
+    closeText: '×',
+    captions: true,
+    captionsData: 'alt',
+    captionType: 'attr',
+    captionDelay: 250,
+    captionSelector: 'img',
+  }
+);
 
-let lightbox = new SimpleLightbox('#gallery .gallery-item .gallery-link ', {
-  dowload: false,
-  close: true,
-  closeText: '×',
-  captions: true,
-  captionsData: 'alt',
-  captionType: 'attr',
-  captionDelay: 250,
-  captionSelector: 'img',
-});
-
-async function getButtonClickHandler(value, page) {
-  SEARCH_WORD = value;
-  loader.style.display = 'inline-block';
+export async function getGallery(value, page) {
+  serviceVars.SEARCH_WORD = value;
+  closeMoreButton();
+  showLoder();
   try {
     const { data } = await getImages(value, page);
+    arrLengthChecker(data.hits) && !value.length;
     const galleryTemplate = data.hits
       .map(hit => {
         return `<div class="gallery-item">
@@ -54,13 +58,19 @@ async function getButtonClickHandler(value, page) {
   </div>`;
       })
       .join('');
-    loader.style.display = 'none';
-    moreButton.style.display = 'inline-block';
+    closeLoder();
+    showMoreButton();
 
     if (!data.hits.length && data.total) {
-      loader.style.display = 'none';
-      moreButton.style.display = 'none';
-      msg.style.display = 'inline-block';
+      closeLoder();
+      closeMoreButton();
+      // msg.style.display = 'inline-block';
+      iziToast.show({
+        message: `We're sorry, but you've reached the end of search results.`,
+        position: 'topRight',
+        title: '',
+        color: 'blue',
+      });
     }
 
     if (page === 1) {
@@ -78,7 +88,7 @@ async function getButtonClickHandler(value, page) {
 
     lightbox.refresh();
   } catch (error) {
-    loader.style.display = 'none';
+    closeLoder();
     iziToast.show({
       message: `"Sorry, there are no images matching your search query. Please try again!"`,
       position: 'topRight',
@@ -87,34 +97,34 @@ async function getButtonClickHandler(value, page) {
     });
   }
 
+  closeLoder();
   searchInput.value = '';
 }
-searchButton.addEventListener('click', () => {
-  PAGE = 1;
-  getButtonClickHandler(searchInput.value, PAGE);
-  PAGE += 1;
-});
-moreButton.addEventListener('click', () => {
-  getButtonClickHandler(SEARCH_WORD, PAGE);
-  PAGE += 1;
-});
 
-// export function showLoder() {
-//   refs.loader.style.display = 'inline-block';
-// }
+export function showLoder() {
+  refs.loader.style.display = 'inline-block';
+}
 
-// export function closeLoder() {
-//   refs.loader.style.display = 'none';
-// }
+export function closeLoder() {
+  refs.loader.style.display = 'none';
+}
 
-// export function arrLengthChecker(arr) {
-//   if (!arr.length) {
-//     iziToast.error({
-//       message:
-//         'Sorry, there are no images matching your search query. Please try again!',
-//       position: 'topRight',
-//       title: '',
-//       color: 'red',
-//     });
-//   }
-// }
+export function showMoreButton() {
+  refs.moreButton.style.display = 'inline-block';
+}
+
+export function closeMoreButton() {
+  refs.moreButton.style.display = 'none';
+}
+
+export function arrLengthChecker(arr) {
+  if (!arr.length) {
+    iziToast.error({
+      message:
+        'Sorry, there are no images matching your search query. Please try again!',
+      position: 'topRight',
+      title: '',
+      color: 'red',
+    });
+  }
+}
