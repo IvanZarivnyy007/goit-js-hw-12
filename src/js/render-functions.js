@@ -76,7 +76,7 @@ export async function getGallery(value, page) {
     if (page === 1) {
       gallery.innerHTML = galleryTemplate;
     } else {
-      gallery.innerHTML += galleryTemplate;
+      gallery.insertAdjacentHTML('beforeend', galleryTemplate);
 
       window.scrollBy({
         behavior: 'smooth',
