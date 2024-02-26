@@ -119,6 +119,7 @@ export function closeMoreButton() {
 
 export function arrLengthChecker(arr) {
   if (!arr.length) {
+    closeMoreButton();
     iziToast.error({
       message:
         'Sorry, there are no images matching your search query. Please try again!',
